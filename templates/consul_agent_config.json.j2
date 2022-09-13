@@ -1,0 +1,31 @@
+{
+    "advertise_addr": "{{ ansible_default_ipv4.address }}",
+    "bind_addr": "{{ ansible_default_ipv4.address }}",
+    "client_addr": "0.0.0.0",
+    "datacenter": "{{ consul_datacenter }}",
+    "data_dir": "{{ consul_data_dir }}",
+    "domain": "consul",
+    "enable_script_checks": true,
+    "dns_config": {
+        "enable_truncate": true,
+        "only_passing": true
+    },
+    "enable_syslog": true,
+    "encrypt": "{{ consul_encrypt_key }}",
+    "leave_on_terminate": true,
+    "log_level": "{{ consul_log_level }}",
+    "rejoin_after_leave": true,
+    "retry_join": [
+{%- for host in groups['servers'] %}
+    "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{{ ", " if not loop.last else "" }}
+{%- endfor %}
+
+    ],
+    "start_join": [
+{%- for host in groups['servers'] %}
+    "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{{ ", " if not loop.last else "" }}
+{%- endfor %}
+
+    ],
+    "ui": false
+}

@@ -1,0 +1,154 @@
+---
+
+- name: Update cache from sources
+  apt:
+    update_cache: yes
+  when: ansible_facts['distribution'] == "Debian"
+
+- name:  Adding group "consul"
+  group:
+    name: "{{ consul_group }}" 
+    state: present
+    system: True 
+
+- name: Creating user consul
+  user:
+    name: "{{ consul_user }}"
+    group: "{{ consul_group }}" 
+    shell:  "/sbin/nologin"
+    state: present
+    create_home: false
+    system: True
+    
+- name: Creating config directory
+  file:
+    path:  "{{ item }}"
+    state: directory
+    recurse: True 
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+    mode: "775"
+  with_items: 
+    - "{{ consul_data_dir }}"
+    - "{{ consul_config_dir }}"
+
+- name: Download consul binary 
+  get_url:
+    url: "{{ consul_dl_url }}" # required. HTTP, HTTPS, or FTP URL in the form (http|https|ftp)://[user[:pass]]@host.domain[:port]/path
+    dest: "/tmp/consul.zip"  # required. Absolute path of where to download the file to. If C(dest) is a directory, either the server provided filename or, if none provided, the base name of the URL on the remote server will be used. If a directory, C(force) has no effect. If C(dest) is a directory, the file will always be downloaded (regardless of the C(force) option), but replaced only if the contents changed..
+    use_proxy: True # not required. if C(no), it will not use a proxy, even if one is defined in an environment variable on the target hosts.
+    validate_certs: True # not required. If C(no), SSL certificates will not be validated. This should only be used on personally controlled sites using self-signed certificates.
+    timeout: 10 # not required. Timeout in seconds for URL request.
+    owner: "{{ consul_user }}"  # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}" # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  environment: "{{ proxy }}"
+  when: "'{{ consul_dl_url }}' is defined"
+
+- name: Extract consul_zip 
+  unarchive:
+    src: "/tmp/consul.zip" # required. If C(remote_src=no) (default), local path to archive file to copy to the target server; can be absolute or relative. If C(remote_src=yes), path on the target server to existing archive file to unpack. If C(remote_src=yes) and C(src) contains C(://), the remote machine will download the file from the URL first. (version_added 2.0). This is only for simple cases, for full download support use the M(get_url) module.
+    dest: "{{ dir_consul_binary }}" # required. Remote absolute path where the archive should be unpacked.
+    remote_src: True # not required. Set to C(yes) to indicate the archived file is already on the remote system and not local to the Ansible controller. This option is mutually exclusive with C(copy).
+    mode: 0555 # not required. The permissions the resulting file or directory should have. For those used to I(/usr/bin/chmod) remember that modes are actually octal numbers. You must either add a leading zero so that Ansible's YAML parser knows it is an octal number (like C(0644) or C(01777)) or quote it (like C('644') or C('1777')) so Ansible receives a string and can do its own conversion from string into number. Giving Ansible a number without following one of these rules will end up with a decimal number which will have unexpected results. As of Ansible 1.8, the mode may be specified as a symbolic mode (for example, C(u+rwx) or C(u=rw,g=r,o=r)). As of Ansible 2.6, the mode may also be the special string C(preserve). When set to C(preserve) the file will be given the same permissions as the source file.
+    owner: "{{ consul_user }}"   # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}" # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  when: "'{{ consul_dl_url }}' is defined"
+
+- name: Copy consul binary 
+  copy:
+    dest:  "{{ dir_consul_binary }}/consul" 
+    src: "consul" 
+    mode:  0554
+    checksum: "{{ checksum_consul_binary }}" 
+    owner: "{{ consul_user }}"
+    group:  "{{ consul_group }}"
+  when: "'{{ consul_dl_url }}' is not defined"
+
+- name: Download consul binary 
+  get_url:
+    url: "{{ consul_template_dl_url }}" # required. HTTP, HTTPS, or FTP URL in the form (http|https|ftp)://[user[:pass]]@host.domain[:port]/path
+    dest: "/tmp/consul-template.zip"  # required. Absolute path of where to download the file to. If C(dest) is a directory, either the server provided filename or, if none provided, the base name of the URL on the remote server will be used. If a directory, C(force) has no effect. If C(dest) is a directory, the file will always be downloaded (regardless of the C(force) option), but replaced only if the contents changed..
+    use_proxy: True # not required. if C(no), it will not use a proxy, even if one is defined in an environment variable on the target hosts.
+    validate_certs: True # not required. If C(no), SSL certificates will not be validated. This should only be used on personally controlled sites using self-signed certificates.
+    timeout: 10 # not required. Timeout in seconds for URL request.
+    mode: 0555 # not required. The permissions the resulting file or directory should have. For those used to I(/usr/bin/chmod) remember that modes are actually octal numbers. You must either add a leading zero so that Ansible's YAML parser knows it is an octal number (like C(0644) or C(01777)) or quote it (like C('644') or C('1777')) so Ansible receives a string and can do its own conversion from string into number. Giving Ansible a number without following one of these rules will end up with a decimal number which will have unexpected results. As of Ansible 1.8, the mode may be specified as a symbolic mode (for example, C(u+rwx) or C(u=rw,g=r,o=r)). As of Ansible 2.6, the mode may also be the special string C(preserve). When set to C(preserve) the file will be given the same permissions as the source file.
+    owner: "{{ consul_user }}"  # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}" # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  environment: "{{ proxy }}"
+  when: "consul_template_dl_url is defined"
+
+- name: Extract consul_template_zip 
+  unarchive:
+    src: "/tmp/consul-template.zip" # required. If C(remote_src=no) (default), local path to archive file to copy to the target server; can be absolute or relative. If C(remote_src=yes), path on the target server to existing archive file to unpack. If C(remote_src=yes) and C(src) contains C(://), the remote machine will download the file from the URL first. (version_added 2.0). This is only for simple cases, for full download support use the M(get_url) module.
+    dest: "{{ dir_consul_template_binary }}" # required. Remote absolute path where the archive should be unpacked.
+    remote_src: True # not required. Set to C(yes) to indicate the archived file is already on the remote system and not local to the Ansible controller. This option is mutually exclusive with C(copy).
+    mode: 0555 # not required. The permissions the resulting file or directory should have. For those used to I(/usr/bin/chmod) remember that modes are actually octal numbers. You must either add a leading zero so that Ansible's YAML parser knows it is an octal number (like C(0644) or C(01777)) or quote it (like C('644') or C('1777')) so Ansible receives a string and can do its own conversion from string into number. Giving Ansible a number without following one of these rules will end up with a decimal number which will have unexpected results. As of Ansible 1.8, the mode may be specified as a symbolic mode (for example, C(u+rwx) or C(u=rw,g=r,o=r)). As of Ansible 2.6, the mode may also be the special string C(preserve). When set to C(preserve) the file will be given the same permissions as the source file.
+    owner: "{{ consul_user }}"   # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}" # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  when: "'{{ consul_dl_url }}' is defined"
+
+- name: Copy consul-template binary 
+  copy:
+    dest:  "{{ dir_consul_template_binary }}/consul-template" 
+    src: "consul-template" 
+    mode:  0555
+    checksum: "{{ checksum_consul_template_binary }}" 
+    owner: "{{ consul_user }}"
+    group:  "{{ consul_group }}"
+  when: "'{{ consul_template_dl_url }}' is not defined"
+
+- name: Templating config for servers
+  template:
+    src: consul_server_config.json.j2 # required. Path of a Jinja2 formatted template on the Ansible controller. This can be a relative or an absolute path. The file must be encoded with C(utf-8) but I(output_encoding) can be used to control the encoding of the output template.
+    dest: "{{ consul_config_dir }}/config.json" # required. Location to render the template to on the remote machine.
+    owner: "{{ consul_user }}" # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}" # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  when: inventory_hostname in groups["servers"]
+
+- name: Templating config for clients
+  template:
+    src: consul_agent_config.json.j2 # required. Path of a Jinja2 formatted template on the Ansible controller. This can be a relative or an absolute path. The file must be encoded with C(utf-8) but I(output_encoding) can be used to control the encoding of the output template.
+    dest: "{{ consul_config_dir }}/config.json" # required. Location to render the template to on the remote machine.
+    owner: "{{ consul_user }}" # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}" # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  when: inventory_hostname in groups["clients"]
+
+- name: Force permissions to executable consul
+  file:
+    path: "{{ dir_consul_binary }}/consul"  # required. Path to the file being managed.
+    mode: "u=rx,g=rx,o=r" # not required. The permissions the resulting file or directory should have. For those used to I(/usr/bin/chmod) remember that modes are actually octal numbers. You must either add a leading zero so that Ansible's YAML parser knows it is an octal number (like C(0644) or C(01777)) or quote it (like C('644') or C('1777')) so Ansible receives a string and can do its own conversion from string into number. Giving Ansible a number without following one of these rules will end up with a decimal number which will have unexpected results. As of Ansible 1.8, the mode may be specified as a symbolic mode (for example, C(u+rwx) or C(u=rw,g=r,o=r)). As of Ansible 2.6, the mode may also be the special string C(preserve). When set to C(preserve) the file will be given the same permissions as the source file.
+    owner: "{{ consul_user }}" # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: "{{ consul_group }}"  # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+
+- name: Templating service (systemd)
+  template:
+    src: consul_service.service.j2 # required. Path of a Jinja2 formatted template on the Ansible controller. This can be a relative or an absolute path. The file must be encoded with C(utf-8) but I(output_encoding) can be used to control the encoding of the output template.
+    dest: "{{ service_consul_systemd }}" # required. Location to render the template to on the remote machine.
+    mode: 0550  # not required. The permissions the resulting file or directory should have. For those used to I(/usr/bin/chmod) remember that modes are actually octal numbers. You must either add a leading zero so that Ansible's YAML parser knows it is an octal number (like C(0644) or C(01777)) or quote it (like C('644') or C('1777')) so Ansible receives a string and can do its own conversion from string into number. Giving Ansible a number without following one of these rules will end up with a decimal number which will have unexpected results. As of Ansible 1.8, the mode may be specified as a symbolic mode (for example, C(u+rwx) or C(u=rw,g=r,o=r)). As of Ansible 2.6, the mode may also be the special string C(preserve). When set to C(preserve) the file will be given the same permissions as the source file.
+    owner: root # not required. Name of the user that should own the file/directory, as would be fed to I(chown).
+    group: root # not required. Name of the group that should own the file/directory, as would be fed to I(chown).
+  notify: 
+   - "daemon reload"
+   - "enable consul at boot"
+
+- name: start consul
+  systemd:
+    name: consul 
+    state: started
+
+- name: get service facts
+  service_facts:
+
+- name: Checking if consul's servers is UP and running
+  debug:
+    var: ansible_facts.services["consul.service"]["state"]
+  when: inventory_hostname in groups["servers"]
+
+- name: Be sure that consul is up, otherwise make an error
+  assert:
+    that: "'running' in '{{ ansible_facts.services['consul.service']['state'] }}'"  # required. A list of string expressions of the same form that can be passed to the 'when' statement.
+    fail_msg: "Failed ! Consul is not running" # not required. The customized message used for a failing assertion. This argument was called 'msg' before Ansible 2.7, now it is renamed to 'fail_msg' with alias 'msg'.
+    success_msg: "Success ! Consul is UP" 
+    quiet: False 
+
+

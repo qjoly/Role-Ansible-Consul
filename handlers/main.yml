@@ -1,0 +1,21 @@
+---
+
+
+- name: enable consul at boot
+  systemd:
+    enabled: yes 
+    name: consul 
+    
+- name: daemon reload
+  systemd:
+    daemon_reload: True 
+
+- name: restart consul
+  systemd:
+    name: consul 
+    state: restarted 
+
+- name: start consul
+  systemd:
+    name: consul 
+    state: started 

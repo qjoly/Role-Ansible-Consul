@@ -1,0 +1,34 @@
+---
+# Consul settings
+consul_data_dir: "/var/lib/consul"
+consul_config_dir: "/etc/consul.d"
+consul_datacenter: "datacenter"
+consul_log_level: "INFO"
+consul_enable_syslog: "true"
+consul_group: "consul"
+consul_user: "consul"
+consul_tmpl_dir: "/var/consul_tmpl"
+
+
+# Installation of consul
+
+# Used for download files
+temp_dir_extract: "/tmp"
+
+# if URL is specified, will use "get_url" to download it instead of copy files/consul
+consul_dl_url: "https://releases.hashicorp.com/consul/1.12.1/consul_1.12.1_linux_amd64.zip"
+dir_consul_binary: "/usr/local/bin/"
+service_consul_systemd: "/etc/systemd/system/consul.service"
+checksum_consul_binary: "6efa2544faf05835663803522c8f0e0f77c58d05" # SHA1 Checksum (Only if consul_dl_url is not define)
+
+# Installation of consul-template
+
+# if URL is specified, will use "get_url" to download it instead of copy files/consul-template
+consul_template_dl_url: "https://releases.hashicorp.com/consul-template/0.29.0/consul-template_0.29.0_linux_amd64.zip"
+dir_consul_template_binary: "/usr/local/bin/"
+service_consul_template_systemd: "/etc/systemd/system/consul-template.service"
+checksum_consul_template_binary: "3d0426472fb66db8fa8ccb78c6d5227aff4dad7e" # SHA1 Checksum (Only if consul_dl_url is not define)
+
+# Configuration of machine
+changing_hostname: True 
+

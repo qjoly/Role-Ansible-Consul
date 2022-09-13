@@ -1,0 +1,20 @@
+---
+
+
+# Services will be applied only if installed on a client
+services:
+  - service_name: "haproxy"
+    config_location: "/etc/haproxy/haproxy.cfg"
+    reload_command: "service haproxy reload"
+
+  - service_name: "apache2"
+    config_location: "/etc/apache2/sites-available/000-default.conf"
+    reload_command: "service apache2 restart"
+
+
+consul_encrypt_key: "F6jMtBwF5VhkvQ3H/h2h4mi5fpaw/CEskFBZiORdBA0=" #Obviously : Change it
+
+proxy: 
+  http_proxy: ""
+  https_proxy: ""
+

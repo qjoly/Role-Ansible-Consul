@@ -1,0 +1,16 @@
+{"service":
+    {
+    "name": "apache2", 
+    "tags": ["web"], 
+    "port": 80,
+    "check": {
+       "id": "apache2",
+       "name": "Checking if apache2 is running",
+       "args": ["cat", "/var/run/apache2/apache2.pid"],
+       "interval": "10s",
+       "timeout": "5s"
+     }
+   }
+   }
+   
+   

@@ -1,0 +1,22 @@
+[Unit]
+Description=Consul Service Discovery Agent
+Documentation=https://www.consul.io/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ consul_user }}
+Group={{ consul_group }}
+ExecStart={{ dir_consul_binary }}/consul agent \
+  -data-dir={{ consul_data_dir }} \
+  -config-dir={{ consul_config_dir }}
+
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+TimeoutStopSec=5
+Restart=on-failure
+SyslogIdentifier=consul
+
+[Install]
+WantedBy=multi-user.target

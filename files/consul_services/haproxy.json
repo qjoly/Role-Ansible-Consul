@@ -1,0 +1,15 @@
+{"service":
+ {
+ "name": "haproxy", 
+ "tags": ["Load-Balancer","web", "url:haproxy.lan"], 
+ "port": 8080,
+ "check": {
+    "id": "haproxy",
+    "name": "Checking if service is running",
+    "args": ["cat", "/run/haproxy.pid"],
+    "interval": "10s",
+    "timeout": "5s"
+  }
+}
+}
+

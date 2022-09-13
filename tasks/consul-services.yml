@@ -1,0 +1,58 @@
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+  when: inventory_hostname in groups["clients"]
+
+- debug: 
+    var: ansible_facts.packages['haproxy']
+  when: inventory_hostname in groups["clients"]
+
+- name: Templating service consul-template (systemd)
+  template: 
+    src: consul_template.service.j2
+    dest: "{{ service_consul_template_systemd }}" 
+    mode: 0550  
+    owner: root
+    group: root 
+  when: inventory_hostname in groups["clients"]
+
+- name: Adding all templates
+  copy:
+    dest: "{{ consul_tmpl_dir }}" 
+    src: "services/" 
+    mode: 0444 
+    directory_mode: True
+    owner: "{{ consul_user }}" 
+    group:  "{{ consul_group }}" 
+  when: inventory_hostname in groups["clients"]
+
+- name: Install python-consul 
+  pip:
+    name: python-consul 
+    state: present
+  environment: "{{ proxy }}"
+    
+
+- name: Deploy services only when package is installed
+  copy:
+    dest: "{{ consul_config_dir }}" 
+    src: "consul_services/{{ ansible_facts.packages[item['service_name']][0]['name'] }}.json"
+    mode: 0444 
+    owner: "{{ consul_user }}" 
+    group:  "{{ consul_group }}" 
+  when: 
+    - inventory_hostname in groups["clients"]
+    - ansible_facts.packages[item['service_name']] is defined
+  loop: "{{ services }}"
+
+- name: "Redemarrage de consul-template"
+  systemd:
+    name: consul-template # not required. Name of the service. This parameter takes the name of exactly one service to work with. When using in a chroot environment you always need to specify the full name i.e. (crond.service).
+    state: restarted # not required. choices: reloaded;restarted;started;stopped. C(started)/C(stopped) are idempotent actions that will not run commands unless necessary. C(restarted) will always bounce the service. C(reloaded) will always reload.
+    enabled: True # not required. Whether the service should start on boot. B(At least one of state and enabled are required.)
+    daemon_reload: True # not required. Run daemon-reload before doing any other operations, to make sure systemd has read any changes. When set to C(yes), runs daemon-reload even if the module does not start or stop anything.
+  when: inventory_hostname in groups["clients"]
+  
+- name: Consul Reload
+  command: "consul reload"
+

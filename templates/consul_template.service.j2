@@ -1,0 +1,28 @@
+[Unit]
+Description=Consul Template adon to consul
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=consul
+ExecStart={{ dir_consul_template_binary }}/consul-template \
+        -consul-addr 127.0.0.1:8500 \
+{%- for service in services %}
+
+  {% if ansible_facts.packages[service['service_name']] is defined %}
+    -template "{{ consul_tmpl_dir }}/{{ service['service_name'] }}.tmpl:{{ service['config_location'] }}:{{ service['reload_command'] }}" {{ "\\" if not loop.last else "" }}
+  {% else %}
+  {% endif %}
+{%- endfor %}
+
+
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+TimeoutStopSec=5
+Restart=on-failure
+SyslogIdentifier=consul
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+global
+        daemon
+        maxconn 256
+
+    defaults
+        mode http
+        timeout connect 5000ms
+        timeout client 50000ms
+        timeout server 50000ms
+
+frontend apache2
+
+ {{ with service "haproxy" }} {{ with index . 0 }}
+        bind :{{ with index (service "haproxy") 0 }}{{ .Port }}{{ end }}
+ {{ end }}{{ end }}
+        mode http
+        default_backend apache2
+
+backend apache2
+        mode http
+        cookie LBN insert indirect nocache
+        option httpclose
+        option forwardfor
+        balance roundrobin {{ range service "apache2" }}
+        server {{ .Node }} {{.Address }}:{{ .Port }} {{ end }}
