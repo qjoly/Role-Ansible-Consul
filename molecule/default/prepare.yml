@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Install classic libs"
+      package:
+        name:
+          - unzip
+          - iproute2
+
