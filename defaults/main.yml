@@ -30,5 +30,5 @@ service_consul_template_systemd: "/etc/systemd/system/consul-template.service"
 checksum_consul_template_binary: "3d0426472fb66db8fa8ccb78c6d5227aff4dad7e" # SHA1 Checksum (Only if consul_dl_url is not define)
 
 # Configuration of machine
-changing_hostname: True 
+changing_hostname: False 
 
