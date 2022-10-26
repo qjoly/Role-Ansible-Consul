@@ -5,7 +5,7 @@ driver:
   name: docker
 platforms:
   - name: instance1
-    image: quay.io/centos/centos:stream8
+    image: geerlingguy/docker-debian11-ansible:latest
     pre_build_image: true
     command: /sbin/init
     tmpfs:
@@ -17,7 +17,7 @@ platforms:
       - servers
 
   - name: instance2
-    image: quay.io/centos/centos:stream8
+    image: geerlingguy/docker-debian11-ansible:latest
     pre_build_image: true
     command: /sbin/init
     tmpfs:
@@ -29,7 +29,7 @@ platforms:
       - clients
 
   - name: instance3
-    image: quay.io/centos/centos:stream8
+    image: geerlingguy/docker-debian11-ansible:latest
     pre_build_image: true
     command: /sbin/init
     tmpfs:
