@@ -24,4 +24,5 @@ jobs:
       - name: Launch Molecule
         run: |
           molecule create
+          molecule prepare
           molecule converge
