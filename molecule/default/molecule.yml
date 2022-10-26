@@ -4,7 +4,7 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: instance
+  - name: instance1
     image: quay.io/centos/centos:stream8
     pre_build_image: true
     command: /sbin/init
@@ -13,6 +13,33 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - servers
+
+  - name: instance2
+    image: quay.io/centos/centos:stream8
+    pre_build_image: true
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - clients
+
+  - name: instance3
+    image: quay.io/centos/centos:stream8
+    pre_build_image: true
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - clients
+
 provisioner:
   name: ansible
 verifier:
