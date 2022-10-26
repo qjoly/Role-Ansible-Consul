@@ -131,6 +131,10 @@
    - "daemon reload"
    - "enable consul at boot"
 
+- name: daemon reload
+  systemd:
+    daemon_reload: True
+
 - name: start consul
   systemd:
     name: consul 
