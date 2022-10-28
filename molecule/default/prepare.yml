@@ -12,4 +12,5 @@
         name:
           - unzip
           - iproute2
+          - python3-pip
 
