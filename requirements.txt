@@ -1,5 +1,5 @@
 ansible==5.8.0
-ansible-compat==2.2.1
+ansible-compat==2.2.5
 ansible-core==2.12.6
 ansible-lint==6.8.2
 docker==6.0.0
