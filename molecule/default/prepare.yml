@@ -2,7 +2,7 @@
 - name: Converge
   hosts: all
   vars:
-    - ansible_remote_tmp: "/tmp/"
+    - ansible_remote_tmp: /var/tmp/
   tasks:
     - name: Update repositories cache
       ansible.builtin.apt:
